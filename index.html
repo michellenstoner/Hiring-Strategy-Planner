@@ -132,11 +132,26 @@ tr:last-child td{border-bottom:none;}
 <!-- Conversion Rates -->
 <div class="section">
   <div class="section-title">Conversion rates</div>
-  <div class="grid-4">
+  <div class="grid-4" style="margin-bottom:10px;">
     <div><label>App → RPS %</label><input type="number" id="appRate" value="50" min="1" max="100"><div class="field-hint">% of applicants who advance to a recruiter screen</div></div>
-    <div><label>RPS → F2F %</label><input type="number" id="rpsRate" value="60" min="1" max="100"><div class="field-hint">% of screened candidates invited to interview</div></div>
+    <div><label>RPS → F2F %</label><input type="number" id="rpsRate" value="60" min="1" max="100"><div class="field-hint">% of screened candidates invited to F2F (or PE screen if used)</div></div>
     <div><label>F2F → Offer %</label><input type="number" id="f2fRate" value="57" min="1" max="100"><div class="field-hint">% of interviewed candidates who receive an offer</div></div>
     <div><label>Offer → Accept %</label><input type="number" id="acceptRate" value="90" min="1" max="100"><div class="field-hint">% of candidates who accept an offer once extended</div></div>
+  </div>
+  <div style="background:#f8fafc;border-radius:8px;padding:12px 14px;border-left:3px solid #0284c7;">
+    <div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:10px;">Optional stages — add if your process includes these steps</div>
+    <div class="grid-2">
+      <div>
+        <label>PE / Hiring Manager Screen pass rate %<span class="optional-tag">optional</span></label>
+        <input type="number" id="peRate" value="" placeholder="e.g. 70" min="1" max="100">
+        <div class="field-hint">Use if candidates complete a PE or hiring manager screen between RPS and F2F. Enter the % who advance past this stage. If blank, this stage is skipped.</div>
+      </div>
+      <div>
+        <label>F2F Round 2 pass rate %<span class="optional-tag">optional</span></label>
+        <input type="number" id="f2fRound2Rate" value="" placeholder="e.g. 80" min="1" max="100">
+        <div class="field-hint">Use if candidates complete a second interview round before receiving an offer. Enter the % who advance from Round 1 to Round 2. If blank, this stage is skipped.</div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -603,14 +618,18 @@ function calculate() {
     [[apps,'Candidates needed'],[rps,'RPS required'],[f2f,'F2F interviews'],[offers,'Offers to extend']]
     .map(function(v) { return '<div class="metric"><div class="metric-val">'+v[0]+'</div><div class="metric-lbl">'+v[1]+'</div></div>'; }).join('');
 
-  // Funnel
-  var stages = [
-    ['Applications / sourced',apps,Math.round(appRate*100)+'% → RPS'],
-    ['Recruiter phone screen',rps,Math.round(rpsRate*100)+'% → F2F'],
-    ['Face-to-face interview',f2f,Math.round(f2fRate*100)+'% → offer'],
-    ['Offers extended',offers,Math.round(acceptRate*100)+'% accept'],
-    ['Hires',hires,'goal']
-  ];
+  // Funnel — build dynamically based on optional stages
+  var stages = [['Applications / sourced', apps, Math.round(appRate*100)+'% → RPS']];
+  stages.push(['Recruiter phone screen (RPS)', rps, peRate ? Math.round(rpsRate*100)+'% → PE screen' : Math.round(rpsRate*100)+'% → F2F']);
+  if (peRate) stages.push(['PE / Hiring manager screen', pe, Math.round(peRate*100)+'% → F2F']);
+  if (f2fRound2Rate) {
+    stages.push(['F2F — Round 1', f2f, Math.round(f2fRound2Rate*100)+'% → Round 2']);
+    stages.push(['F2F — Round 2', f2fR2, Math.round(f2fRate*100)+'% → offer']);
+  } else {
+    stages.push(['Face-to-face interview', f2f, Math.round(f2fRate*100)+'% → offer']);
+  }
+  stages.push(['Offers extended', offers, Math.round(acceptRate*100)+'% accept']);
+  stages.push(['Hires', hires, 'goal']);
   document.getElementById('funnelRows').innerHTML = stages.map(function(s) {
     return '<div class="funnel-row"><div class="funnel-stage">'+s[0]+'</div><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:'+Math.round(s[1]/apps*100)+'%"></div></div><div class="funnel-num">'+s[1]+'</div><div class="funnel-conv">'+s[2]+'</div></div>';
   }).join('');
