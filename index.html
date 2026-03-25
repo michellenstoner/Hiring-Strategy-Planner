@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hiring Strategy Planner</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f8fafc;color:#1e293b;font-size:14px;line-height:1.5;}
+.header{background:#0284c7;color:white;padding:20px 32px;}
+.header h1{font-size:20px;font-weight:600;}
+.header p{font-size:13px;opacity:0.85;margin-top:2px;}
+.container{max-width:940px;margin:0 auto;padding:24px;}
+.mode-toggle{display:flex;margin-bottom:20px;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;}
+.mode-btn{flex:1;padding:12px;font-size:13px;font-weight:500;cursor:pointer;border:none;background:white;color:#64748b;text-align:center;}
+.mode-btn.active{background:#0284c7;color:white;}
+.mode-btn:first-child{border-right:1px solid #e2e8f0;}
+.section{background:white;border:1px solid #e2e8f0;border-radius:12px;padding:20px;margin-bottom:14px;}
+.section-title{font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:14px;}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.grid-3b{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+@media(max-width:640px){.grid-2,.grid-3,.grid-4,.grid-3b{grid-template-columns:1fr 1fr;}}
+label{font-size:12px;color:#64748b;display:block;margin-bottom:4px;}
+input,select{width:100%;padding:7px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;color:#1e293b;background:white;}
+input:focus,select:focus{outline:none;border-color:#0284c7;box-shadow:0 0 0 3px rgba(2,132,199,0.1);}
+.calc-btn{width:100%;padding:12px;font-size:14px;font-weight:600;cursor:pointer;border-radius:10px;border:none;background:#0284c7;color:white;margin-top:8px;}
+.calc-btn:hover{background:#0369a1;}
+.metric{background:#f0f9ff;border-radius:10px;padding:14px;text-align:center;}
+.metric-val{font-size:22px;font-weight:700;color:#0284c7;}
+.metric-lbl{font-size:11px;color:#64748b;margin-top:2px;}
+.funnel-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f1f5f9;}
+.funnel-row:last-child{border-bottom:none;}
+.funnel-stage{font-size:13px;color:#64748b;width:190px;flex-shrink:0;}
+.funnel-bar-wrap{flex:1;background:#f1f5f9;border-radius:4px;height:8px;overflow:hidden;}
+.funnel-bar{height:8px;border-radius:4px;background:#0284c7;}
+.funnel-num{font-size:14px;font-weight:600;color:#0f172a;width:36px;text-align:right;}
+.funnel-conv{font-size:11px;color:#94a3b8;width:80px;text-align:right;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{font-size:11px;font-weight:600;color:#64748b;text-align:left;padding:7px 8px;border-bottom:1px solid #e2e8f0;}
+td{padding:7px 8px;border-bottom:1px solid #f1f5f9;}
+tr:last-child td{border-bottom:none;}
+.hot{color:#0284c7;font-weight:600;}
+.timeline-row{display:flex;align-items:flex-start;gap:14px;padding:12px 0;border-bottom:1px solid #f1f5f9;}
+.timeline-row:last-child{border-bottom:none;}
+.tl-dot{width:32px;height:32px;border-radius:50%;background:#0284c7;color:white;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;margin-top:2px;}
+.tl-dot.warn{background:#f59e0b;}
+.tl-dot.done{background:#16a34a;}
+.tl-date{font-size:13px;font-weight:600;color:#0284c7;margin-bottom:2px;}
+.tl-label{font-size:14px;font-weight:500;color:#0f172a;}
+.tl-note{font-size:12px;color:#64748b;margin-top:2px;}
+.scenario-card{border:1px solid #e2e8f0;border-radius:10px;padding:16px;margin-bottom:10px;}
+.scenario-card.rec{border-color:#0284c7;}
+.rec-badge{display:inline-block;font-size:11px;padding:2px 10px;background:#dbeafe;color:#1d4ed8;border-radius:6px;margin-bottom:8px;}
+.scenario-title{font-size:14px;font-weight:600;margin-bottom:4px;}
+.scenario-sub{font-size:12px;color:#64748b;margin-bottom:10px;}
+.pro{font-size:12px;color:#16a34a;margin-top:8px;}
+.con{font-size:12px;color:#d97706;margin-top:4px;}
+.rec-box{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:12px 16px;font-size:13px;color:#166534;margin-top:12px;}
+.warn-box{background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:12px 16px;font-size:13px;color:#92400e;margin-bottom:14px;}
+.tabs{display:flex;gap:4px;border-bottom:1px solid #e2e8f0;margin-bottom:14px;flex-wrap:wrap;}
+.tab{font-size:13px;padding:8px 14px;cursor:pointer;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-1px;}
+.tab.active{color:#0284c7;border-bottom-color:#0284c7;font-weight:600;}
+.pane{display:none;}
+.pane.active{display:block;}
+.code-box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;font-family:monospace;font-size:11px;color:#475569;max-height:220px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;margin-top:8px;}
+.copy-btn{font-size:12px;padding:4px 12px;cursor:pointer;border-radius:6px;border:1px solid #e2e8f0;background:white;color:#64748b;float:right;}
+.copy-btn:hover{background:#f1f5f9;}
+#results{display:none;}
+.divider{border:none;border-top:1px solid #e2e8f0;margin:20px 0;}
+.grid-2-load{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:600px){.grid-2-load{grid-template-columns:1fr;}}
+.sub-label{font-size:12px;font-weight:600;color:#64748b;margin-bottom:8px;}
+.mode-desc{font-size:13px;color:#64748b;background:#f8fafc;border-radius:8px;padding:10px 14px;margin-bottom:14px;border-left:3px solid #0284c7;}
+.round-row{display:grid;grid-template-columns:1fr 120px 80px 80px;gap:8px;align-items:end;margin-bottom:8px;}
+.round-row input,.round-row select{margin-bottom:0;}
+.round-total{background:#f0f9ff;border-radius:8px;padding:10px 14px;font-size:13px;color:#0284c7;font-weight:600;margin-top:8px;}
+.preset-btn{font-size:12px;padding:4px 10px;cursor:pointer;border-radius:6px;border:1px solid #e2e8f0;background:white;color:#64748b;margin-right:6px;margin-bottom:6px;}
+.preset-btn:hover{border-color:#0284c7;color:#0284c7;}
+.round-count-btn{width:32px;height:32px;border-radius:8px;border:1px solid #e2e8f0;background:white;font-size:18px;cursor:pointer;color:#0284c7;font-weight:600;}
+.round-count-btn:hover{background:#f0f9ff;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Hiring Strategy Planner</h1>
+  <p>Plan any hiring sprint — enter key dates you know, or let the tool calculate your full timeline.</p>
+</div>
+
+<div class="container">
+
+<div class="mode-toggle">
+  <button class="mode-btn active" id="btnA" onclick="setMode('A')">Mode A — I know my key dates</button>
+  <button class="mode-btn" id="btnB" onclick="setMode('B')">Mode B — Calculate timeline for me</button>
+</div>
+
+<div class="section">
+  <div class="section-title">Sprint setup</div>
+  <div class="grid-3" style="margin-bottom:10px;">
+    <div><label>Hiring target</label><input type="number" id="hires" value="15" min="1"></div>
+    <div><label>Role / cohort name</label><input type="text" id="roleName" value="DSA Chicago"></div>
+    <div><label>Location</label><input type="text" id="location" value="Chicago"></div>
+  </div>
+  <div class="grid-4">
+    <div><label>Recruiters</label><input type="number" id="recruiters" value="2" min="1"></div>
+    <div><label>Sourcers</label><input type="number" id="sourcers" value="1" min="0"></div>
+    <div><label>RPS length (min)</label><input type="number" id="rpsLen" value="30" min="15"></div>
+    <div><label>Interviewer pool size</label><input type="number" id="intPool" value="10" min="1"></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Conversion rates</div>
+  <div class="grid-4">
+    <div><label>App → RPS %</label><input type="number" id="appRate" value="50" min="1" max="100"></div>
+    <div><label>RPS → F2F %</label><input type="number" id="rpsRate" value="60" min="1" max="100"></div>
+    <div><label>F2F → Offer %</label><input type="number" id="f2fRate" value="57" min="1" max="100"></div>
+    <div><label>Offer → Accept %</label><input type="number" id="acceptRate" value="90" min="1" max="100"></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Interview format</div>
+  <div style="margin-bottom:12px;">
+    <div style="font-size:12px;color:#64748b;margin-bottom:6px;">Quick presets:</div>
+    <button class="preset-btn" onclick="loadPreset('dsa')">DSA (2x 30min 1:1)</button>
+    <button class="preset-btn" onclick="loadPreset('pe')">With PE screen</button>
+    <button class="preset-btn" onclick="loadPreset('skills')">Skills + 1:1</button>
+    <button class="preset-btn" onclick="loadPreset('full')">Full loop (4 rounds)</button>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+    <span style="font-size:13px;color:#64748b;">Number of rounds:</span>
+    <button class="round-count-btn" onclick="changeRounds(-1)">−</button>
+    <span id="roundCountDisplay" style="font-size:14px;font-weight:600;min-width:20px;text-align:center;">2</span>
+    <button class="round-count-btn" onclick="changeRounds(1)">+</button>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 120px 80px 80px;gap:8px;margin-bottom:6px;">
+    <div style="font-size:11px;color:#94a3b8;font-weight:600;">Round name</div>
+    <div style="font-size:11px;color:#94a3b8;font-weight:600;">Type</div>
+    <div style="font-size:11px;color:#94a3b8;font-weight:600;">Interviewers</div>
+    <div style="font-size:11px;color:#94a3b8;font-weight:600;">Mins</div>
+  </div>
+  <div id="roundsContainer"></div>
+  <div class="round-total" id="roundTotal">Total interview time: — · Total interviewer slots: —</div>
+</div>
+
+<div class="section">
+  <div class="section-title">Batch setup</div>
+  <div class="grid-3b">
+    <div><label>Batch split % (week 1)</label><input type="number" id="batchSplit" value="60" min="10" max="90"></div>
+    <div><label>Interview days per week</label><input type="number" id="intDaysPerWeek" value="2" min="1" max="5"></div>
+    <div></div>
+  </div>
+</div>
+
+<div class="section" id="modeAInputs">
+  <div class="mode-desc">Enter the dates you already know. Leave fields blank if unknown.</div>
+  <div class="section-title">Key dates</div>
+  <div class="grid-4" style="margin-bottom:10px;">
+    <div><label>Req open date</label><input type="date" id="reqOpen"></div>
+    <div><label>RPS deadline</label><input type="date" id="rpsDeadlineA" value="2026-04-01"></div>
+    <div><label>Batch day 1</label><input type="date" id="batch1A" value="2026-04-07"></div>
+    <div><label>Batch day 2</label><input type="date" id="batch2A" value="2026-04-08"></div>
+  </div>
+  <div class="grid-4">
+    <div><label>Offer deadline</label><input type="date" id="offerDeadlineA" value="2026-04-20"></div>
+    <div><label>Offer accept deadline</label><input type="date" id="acceptDeadlineA" value="2026-04-22"></div>
+    <div><label>Start date</label><input type="date" id="startDateA" value="2026-05-04"></div>
+    <div><label>Onboarding / CXA date</label><input type="date" id="cxaDateA"></div>
+  </div>
+</div>
+
+<div class="section" id="modeBInputs" style="display:none;">
+  <div class="mode-desc">Enter your start date and weeks to fill. All milestones will be calculated backwards automatically.</div>
+  <div class="section-title">Timeline inputs</div>
+  <div class="grid-4">
+    <div><label>Target start date</label><input type="date" id="startDateB" value="2026-05-04"></div>
+    <div><label>Weeks to fill</label><input type="number" id="weeksToFill" value="6" min="2" max="26"></div>
+    <div><label>Days before start for offers</label><input type="number" id="daysBeforeOffers" value="12" min="1"></div>
+    <div><label>Onboarding days after start</label><input type="number" id="onboardingDays" value="2" min="0"></div>
+  </div>
+  <div class="grid-4" style="margin-top:10px;">
+    <div><label>RPS weeks (of total)</label><input type="number" id="rpsWeeks" value="4" min="1"></div>
+    <div><label>Batch days (count)</label><input type="number" id="batchDayCount" value="2" min="1" max="5"></div>
+    <div><label>Days between batch weeks</label><input type="number" id="batchGap" value="7" min="1"></div>
+    <div><label>Days offer → accept</label><input type="number" id="offerToAccept" value="2" min="1"></div>
+  </div>
+</div>
+
+<button class="calc-btn" onclick="calculate()">Calculate hiring plan</button>
+
+<div id="results">
+<hr class="divider">
+<div id="warnBox" class="warn-box" style="display:none;"></div>
+
+<div class="section">
+  <div class="section-title">Funnel summary</div>
+  <div class="grid-4" id="statCards" style="margin-bottom:14px;"></div>
+  <div id="funnelRows"></div>
+</div>
+
+<div class="section">
+  <div class="section-title">Hiring timeline</div>
+  <div id="timelineRows"></div>
+</div>
+
+<div class="section">
+  <div class="section-title">Weekly RPS schedule</div>
+  <table id="rpsTable"></table>
+</div>
+
+<div class="section">
+  <div class="section-title">Batch day scenarios</div>
+  <div id="scenarioCards"></div>
+  <div class="rec-box" id="recBox"></div>
+</div>
+
+<div class="section">
+  <div class="section-title">Interviewer load</div>
+  <div class="grid-2-load">
+    <div><div class="sub-label" id="b1label"></div><table id="loadTable1"></table></div>
+    <div><div class="sub-label" id="b2label"></div><table id="loadTable2"></table></div>
+  </div>
+  <div style="margin-top:16px;"><div class="sub-label">Combined total per interviewer</div><table id="loadTableTotal"></table></div>
+</div>
+
+<div class="section">
+  <div class="section-title">Generate outputs</div>
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('sheets')">Google Sheets script</div>
+    <div class="tab" onclick="switchTab('notion')">Notion content</div>
+  </div>
+  <div class="pane active" id="pane-sheets">
+    <button class="copy-btn" onclick="copyCode('sheetsCode')">Copy</button>
+    <div class="code-box" id="sheetsCode"></div>
+  </div>
+  <div class="pane" id="pane-notion">
+    <button class="copy-btn" onclick="copyCode('notionCode')">Copy</button>
+    <div class="code-box" id="notionCode"></div>
+  </div>
+</div>
+</div>
+</div>
+
+<script>
+var currentMode = 'A';
+var roundCount = 2;
+var TYPES = ['1:1 interview','PE screen','Skills assessment','Panel','Group'];
+var MAX_ROUNDS = 8;
+var DEFAULT_ROUNDS = [
+  {name:'Interviewer 1',type:'1:1 interview',ints:1,mins:30},
+  {name:'Interviewer 2',type:'1:1 interview',ints:1,mins:30}
+];
+
+function setMode(m) {
+  currentMode = m;
+  document.getElementById('btnA').className = 'mode-btn' + (m==='A'?' active':'');
+  document.getElementById('btnB').className = 'mode-btn' + (m==='B'?' active':'');
+  document.getElementById('modeAInputs').style.display = m==='A'?'block':'none';
+  document.getElementById('modeBInputs').style.display = m==='B'?'block':'none';
+  document.getElementById('results').style.display = 'none';
+}
+
+function renderRounds(data) {
+  var container = document.getElementById('roundsContainer');
+  container.innerHTML = '';
+  for (var i=0; i<data.length; i++) {
+    var r = data[i];
+    var typeOpts = '';
+    for (var j=0; j<TYPES.length; j++) {
+      typeOpts += '<option'+(TYPES[j]===r.type?' selected':'')+'>'+TYPES[j]+'</option>';
+    }
+    var div = document.createElement('div');
+    div.className = 'round-row';
+    div.innerHTML =
+      '<input type="text" value="'+r.name+'" oninput="updateTotal()">' +
+      '<select onchange="updateTotal()">'+typeOpts+'</select>' +
+      '<input type="number" min="1" value="'+r.ints+'" oninput="updateTotal()">' +
+      '<input type="number" min="5" step="5" value="'+r.mins+'" oninput="updateTotal()">';
+    container.appendChild(div);
+  }
+  roundCount = data.length;
+  document.getElementById('roundCountDisplay').textContent = roundCount;
+  updateTotal();
+}
+
+function changeRounds(delta) {
+  var newCount = Math.min(MAX_ROUNDS, Math.max(1, roundCount + delta));
+  if (newCount === roundCount) return;
+  var current = getRounds();
+  if (newCount > roundCount) {
+    current.push({name:'Round '+(newCount),type:'1:1 interview',ints:1,mins:30});
+  } else {
+    current.pop();
+  }
+  renderRounds(current);
+}
+
+function getRounds() {
+  var rows = document.querySelectorAll('#roundsContainer .round-row');
+  var result = [];
+  for (var i=0; i<rows.length; i++) {
+    var inputs = rows[i].querySelectorAll('input');
+    var sel = rows[i].querySelector('select');
+    result.push({
+      name: inputs[0].value||'Interview round',
+      type: sel?sel.value:'1:1 interview',
+      interviewers: parseInt(inputs[1].value)||1,
+      mins: parseInt(inputs[2].value)||30
+    });
+  }
+  return result;
+}
+
+function updateTotal() {
+  var rounds = getRounds();
+  var totalMins = 0, totalSlots = 0;
+  for (var i=0; i<rounds.length; i++) { totalMins+=rounds[i].mins; totalSlots+=rounds[i].interviewers; }
+  document.getElementById('roundTotal').textContent =
+    'Total interview time per candidate: '+totalMins+' min  ·  Total interviewer slots: '+totalSlots+'  ·  '+rounds.length+' round'+(rounds.length!==1?'s':'');
+}
+
+function loadPreset(preset) {
+  var presets = {
+    dsa:[{name:'Interviewer 1',type:'1:1 interview',ints:1,mins:30},{name:'Interviewer 2',type:'1:1 interview',ints:1,mins:30}],
+    pe:[{name:'PE / hiring manager screen',type:'PE screen',ints:1,mins:30},{name:'F2F interview',type:'1:1 interview',ints:1,mins:45}],
+    skills:[{name:'Skills assessment',type:'Skills assessment',ints:1,mins:30},{name:'1:1 interview',type:'1:1 interview',ints:1,mins:45}],
+    full:[{name:'PE screen',type:'PE screen',ints:1,mins:30},{name:'Skills assessment',type:'Skills assessment',ints:1,mins:30},{name:'1:1 interview A',type:'1:1 interview',ints:1,mins:30},{name:'1:1 interview B',type:'1:1 interview',ints:1,mins:30}]
+  };
+  renderRounds(presets[preset]||DEFAULT_ROUNDS);
+}
+
+function switchTab(t) {
+  var tabs = document.querySelectorAll('.tab');
+  var panes = document.querySelectorAll('.pane');
+  for (var i=0; i<tabs.length; i++) tabs[i].className='tab';
+  for (var i=0; i<panes.i; i++) panes[i].className='pane';
+  document.querySelector('[onclick="switchTab(\''+t+'\')"]').className='tab active';
+  document.getElementById('pane-'+t).className='pane active';
+}
+
+function copyCode(id) {
+  var txt = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(txt).then(function(){
+    event.target.textContent='Copied!';
+    setTimeout(function(){event.target.textContent='Copy';},1500);
+  });
+}
+
+function fmt(d){return new Date(d+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
+function fmtS(d){return new Date(d+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});}
+function addDays(ds,n){var d=new Date(ds+'T00:00:00');d.setDate(d.getDate()+n);return d.toISOString().split('T')[0];}
+function r2(n){return Math.round(n*100)/100;}
+
+function loadTable(interviews,intsPerF2F,daysPerWeek,intPool,minPerInt){
+  var slots=interviews*intsPerF2F;
+  var se=r2(slots/intPool),he=r2(se*minPerInt/60),hd=r2(he/daysPerWeek);
+  return '<tr><th># Interviewers</th><th>Slots each</th><th>Hours each</th><th>Hrs/day</th></tr>' +
+    '<tr><td style="font-weight:600;color:#64748b">'+intPool+'</td><td>~'+se+'</td><td style="font-weight:600">~'+he+' hrs</td><td style="color:#94a3b8">~'+hd+' hrs/day</td></tr>';
+}
+
+function calculate() {
+  var hires=parseInt(document.getElementById('hires').value);
+  var appRate=parseInt(document.getElementById('appRate').value)/100;
+  var rpsRate=parseInt(document.getElementById('rpsRate').value)/100;
+  var f2fRate=parseInt(document.getElementById('f2fRate').value)/100;
+  var acceptRate=parseInt(document.getElementById('acceptRate').value)/100;
+  var recruiters=parseInt(document.getElementById('recruiters').value);
+  var sourcers=parseInt(document.getElementById('sourcers').value);
+  var intPool=parseInt(document.getElementById('intPool').value);
+  var batchSplit=parseInt(document.getElementById('batchSplit').value)/100;
+  var intDaysPerWeek=parseInt(document.getElementById('intDaysPerWeek').value);
+  var role=document.getElementById('roleName').value;
+
+  var rounds=getRounds();
+  if(rounds.length===0){alert('Please add at least one interview round.');return;}
+  var totalMins=0,totalSlots=0;
+  for(var i=0;i<rounds.length;i++){totalMins+=rounds[i].mins;totalSlots+=rounds[i].interviewers;}
+  var intsPerF2F=totalSlots;
+  var minPerInt=totalSlots>0?Math.round(totalMins/totalSlots):30;
+
+  var offers=Math.ceil(hires/acceptRate);
+  var f2f=Math.ceil(offers/f2fRate);
+  var rps=Math.ceil(f2f/rpsRate);
+  var apps=Math.ceil(rps/appRate);
+
+  var startDate,rpsDeadline,batch1,batch2,offerDeadline,acceptDeadline,cxaDate,reqOpen;
+  var warnings=[];
+
+  if(currentMode==='A'){
+    startDate=document.getElementById('startDateA').value;
+    rpsDeadline=document.getElementById('rpsDeadlineA').value;
+    batch1=document.getElementById('batch1A').value;
+    batch2=document.getElementById('batch2A').value;
+    offerDeadline=document.getElementById('offerDeadlineA').value;
+    acceptDeadline=document.getElementById('acceptDeadlineA').value;
+    cxaDate=document.getElementById('cxaDateA').value;
+    reqOpen=document.getElementById('reqOpen').value;
+    if(!acceptDeadline&&offerDeadline)acceptDeadline=addDays(offerDeadline,2);
+    if(!cxaDate&&startDate)cxaDate=addDays(startDate,2);
+    if(startDate&&offerDeadline){
+      var dts=Math.round((new Date(startDate)-new Date(offerDeadline))/(1000*60*60*24));
+      if(dts<10)warnings.push('Only '+dts+' days between offer deadline and start date — consider extending.');
+    }
+  } else {
+    startDate=document.getElementById('startDateB').value;
+    var weeksToFill=parseInt(document.getElementById('weeksToFill').value);
+    var daysBeforeOffers=parseInt(document.getElementById('daysBeforeOffers').value);
+    var offerToAccept=parseInt(document.getElementById('offerToAccept').value);
+    var onboardingDays=parseInt(document.getElementById('onboardingDays').value);
+    var batchGapDays=parseInt(document.getElementById('batchGap').value);
+    cxaDate=addDays(startDate,onboardingDays);
+    offerDeadline=addDays(startDate,-daysBeforeOffers);
+    acceptDeadline=addDays(offerDeadline,offerToAccept);
+    batch2=addDays(offerDeadline,-5);
+    batch1=addDays(batch2,-batchGapDays);
+    rpsDeadline=addDays(batch1,-3);
+    reqOpen=addDays(startDate,-(weeksToFill*7));
+  }
+
+  var wb=document.getElementById('warnBox');
+  if(warnings.length>0){wb.innerHTML='⚠️ '+warnings.join('<br>⚠️ ');wb.style.display='block';}
+  else wb.style.display='none';
+
+  // Stat cards
+  document.getElementById('statCards').innerHTML=
+    [[apps,'Candidates needed'],[rps,'RPS required'],[f2f,'F2F interviews'],[offers,'Offers to extend']]
+    .map(function(v){return '<div class="metric"><div class="metric-val">'+v[0]+'</div><div class="metric-lbl">'+v[1]+'</div></div>';}).join('');
+
+  // Funnel
+  var stages=[['Applications / sourced',apps,Math.round(appRate*100)+'% → RPS'],['Recruiter phone screen',rps,Math.round(rpsRate*100)+'% → F2F'],['Face-to-face interview',f2f,Math.round(f2fRate*100)+'% → offer'],['Offers extended',offers,Math.round(acceptRate*100)+'% accept'],['Hires',hires,'goal']];
+  document.getElementById('funnelRows').innerHTML=stages.map(function(s){
+    return '<div class="funnel-row"><div class="funnel-stage">'+s[0]+'</div><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:'+Math.round(s[1]/apps*100)+'%"></div></div><div class="funnel-num">'+s[1]+'</div><div class="funnel-conv">'+s[2]+'</div></div>';
+  }).join('');
+
+  // Timeline
+  var tl=[];
+  if(reqOpen)tl.push({dot:'1',cls:'',date:fmt(reqOpen),label:'Req opens',note:'Begin sourcing. Target '+apps+' candidates at top of funnel.'});
+  if(rpsDeadline)tl.push({dot:'2',cls:'',date:fmt(rpsDeadline),label:'RPS deadline',note:rps+' screens completed. Confirm F2F invite list ('+f2f+' candidates).'});
+  if(batch1)tl.push({dot:'3',cls:'',date:fmt(batch1),label:'Mini-batch 1',note:Math.round(f2f*batchSplit)+' interviews across '+intDaysPerWeek+' days.'});
+  if(batch2)tl.push({dot:'4',cls:'',date:fmt(batch2),label:'Batch day 2',note:(f2f-Math.round(f2f*batchSplit))+' remaining interviews.'});
+  if(offerDeadline)tl.push({dot:'5',cls:'warn',date:fmt(offerDeadline),label:'Offers extended',note:'Send '+offers+' offers to yield '+hires+' hires.'});
+  if(acceptDeadline)tl.push({dot:'6',cls:'warn',date:fmt(acceptDeadline),label:'Offers accepted',note:'All '+hires+' offers confirmed.'});
+  if(startDate)tl.push({dot:'★',cls:'done',date:fmt(startDate),label:'Start date — '+hires+' hires',note:'New hires begin.'});
+  if(cxaDate)tl.push({dot:'✓',cls:'done',date:fmt(cxaDate),label:'Onboarding / CXA start',note:'Training and onboarding begins.'});
+  document.getElementById('timelineRows').innerHTML=tl.map(function(t){
+    return '<div class="timeline-row"><div class="tl-dot '+t.cls+'">'+t.dot+'</div><div><div class="tl-date">'+t.date+'</div><div class="tl-label">'+t.label+'</div><div class="tl-note">'+t.note+'</div></div></div>';
+  }).join('');
+
+  // RPS schedule
+  var now=new Date();
+  var startCalc=reqOpen?new Date(reqOpen+'T00:00:00'):now;
+  var deadlineDate=rpsDeadline?new Date(rpsDeadline+'T00:00:00'):new Date(addDays(new Date().toISOString().split('T')[0],28)+'T00:00:00');
+  var weeksAvail=Math.max(1,Math.ceil((deadlineDate-startCalc)/(7*24*60*60*1000)));
+  var wts=[0.35,0.30,0.20,0.10,0.05].slice(0,weeksAvail);
+  var wSum=0;for(var i=0;i<wts.length;i++)wSum+=wts[i];
+  var norm=wts.map(function(w){return w/wSum;});
+  var cumulative=0;
+  var rpsHtml='<tr><th>Week</th><th>Dates</th><th>Total</th><th>Rec 1</th>'+(recruiters>1?'<th>Rec 2</th>':'')+(sourcers>0?'<th>Sourcer</th>':'')+'<th>Cumulative</th></tr>';
+  for(var i=0;i<weeksAvail;i++){
+    var ws=new Date(startCalc);ws.setDate(ws.getDate()+i*7);
+    var we=new Date(ws);we.setDate(we.getDate()+6);
+    var wk=i===weeksAvail-1?rps-cumulative:Math.round(norm[i]*rps);
+    cumulative+=wk;
+    var r1=Math.round(wk*0.4),r2v=recruiters>1?Math.round(wk*0.3):0;
+    var src=sourcers>0?Math.max(0,wk-r1-r2v):0;
+    var hot=i<2;
+    rpsHtml+='<tr><td class="'+(hot?'hot':'')+'">'+(hot?'↑ ':'')+'Week '+(i+1)+'</td><td style="color:#64748b;font-size:12px">'+ws.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' – '+we.toLocaleDateString('en-US',{month:'short',day:'numeric'})+'</td><td style="font-weight:600">'+wk+'</td><td>'+r1+'</td>'+(recruiters>1?'<td>'+r2v+'</td>':'')+(sourcers>0?'<td style="color:#94a3b8">'+src+'</td>':'')+'<td style="color:#94a3b8">'+cumulative+' / '+rps+'</td></tr>';
+  }
+  document.getElementById('rpsTable').innerHTML=rpsHtml;
+
+  // Batch scenarios
+  var b1F2F=Math.round(f2f*batchSplit),b2F2F=f2f-b1F2F;
+  var b1PerDay=Math.round(b1F2F/intDaysPerWeek),b2PerDay=Math.round(b2F2F/intDaysPerWeek);
+  var b1Lbl=batch1?'week of '+fmtS(batch1):'mini-batch 1';
+  var b2Lbl=batch2?fmtS(batch2):'batch day 2';
+  var scenarios=[
+    {title:'Scenario A — '+Math.round(batchSplit*100)+'/'+Math.round((1-batchSplit)*100)+' split',sub:b1Lbl+': '+b1F2F+' interviews ('+b1PerDay+'/day) · '+b2Lbl+': '+b2F2F+' interviews ('+b2PerDay+'/day)',rows:[['Mini-batch 1 ('+b1Lbl+')',intDaysPerWeek+' days',b1F2F+' total',b1PerDay+'/day'],['Mini-batch 2 ('+b2Lbl+')',intDaysPerWeek+' days',b2F2F+' total',b2PerDay+'/day']],pro:'Front-loads volume, preserves flex, reduces candidate drop-off risk.',con:'Requires scheduling a separate event the prior week.',rec:true},
+    {title:'Scenario B — All '+f2f+' F2F on batch days',sub:'Everything on batch days. ~'+Math.round(f2f/2)+'/day.',rows:[['All F2F on batch days',f2f+' total',Math.round(f2f/2)+'/day','']],pro:'Simpler — one event to coordinate.',con:'Heavy single-event load. Higher candidate drop risk.',rec:false},
+    {title:'Scenario C — Rolling ('+intDaysPerWeek+' days/week, 3 weeks)',sub:'~'+Math.round(f2f/3)+'/week, '+Math.round(f2f/3/intDaysPerWeek)+'/day.',rows:[['Per week',Math.round(f2f/3)+' interviews',intDaysPerWeek+' days',Math.round(f2f/3/intDaysPerWeek)+'/day']],pro:'Most sustainable pace.',con:'3-week scheduling discipline required.',rec:false}
+  ];
+  document.getElementById('scenarioCards').innerHTML=scenarios.map(function(s){
+    return '<div class="scenario-card'+(s.rec?' rec':'')+'">'+
+      (s.rec?'<div class="rec-badge">Recommended</div>':'')+
+      '<div class="scenario-title">'+s.title+'</div>'+
+      '<div class="scenario-sub">'+s.sub+'</div>'+
+      '<table><tr><th>Stage</th><th>Days</th><th>Volume</th><th>Per day</th></tr>'+
+      s.rows.map(function(r){return '<tr><td style="color:#64748b">'+r[0]+'</td><td>'+r[1]+'</td><td style="font-weight:600">'+r[2]+'</td><td style="color:#94a3b8">'+r[3]+'</td></tr>';}).join('')+
+      '</table><div class="pro">+ '+s.pro+'</div><div class="con">− '+s.con+'</div></div>';
+  }).join('');
+  document.getElementById('recBox').textContent='Recommendation: Scenario A gives the best balance. Front-loading '+Math.round(batchSplit*100)+'% of volume reduces batch day pressure to just '+b2F2F+' slots ('+b2PerDay+'/day) and protects against candidate drop-off.';
+
+  // Interviewer load
+  document.getElementById('b1label').textContent='Batch 1 — '+b1F2F+' interviews, '+intDaysPerWeek+' days';
+  document.getElementById('b2label').textContent='Batch 2 — '+b2F2F+' interviews, '+intDaysPerWeek+' days';
+  document.getElementById('loadTable1').innerHTML=loadTable(b1F2F,intsPerF2F,intDaysPerWeek,intPool,minPerInt);
+  document.getElementById('loadTable2').innerHTML=loadTable(b2F2F,intsPerF2F,intDaysPerWeek,intPool,minPerInt);
+  var h1=r2(b1F2F*intsPerF2F/intPool*minPerInt/60),h2=r2(b2F2F*intsPerF2F/intPool*minPerInt/60);
+  var tot=r2(h1+h2),avg=r2(tot/(intDaysPerWeek*2));
+  document.getElementById('loadTableTotal').innerHTML='<tr><th># Interviewers</th><th>Batch 1 hrs</th><th>Batch 2 hrs</th><th>Total hrs</th><th>Avg/day</th></tr><tr><td style="font-weight:600;color:#64748b">'+intPool+'</td><td>~'+h1+' hrs</td><td>~'+h2+' hrs</td><td style="font-weight:700;color:#0284c7">~'+tot+' hrs</td><td style="color:#94a3b8">~'+avg+'/day</td></tr>';
+
+  // Outputs
+  document.getElementById('sheetsCode').textContent='// '+role+' — '+hires+' hires\n// Funnel: '+apps+' apps → '+rps+' RPS → '+f2f+' F2F → '+offers+' offers → '+hires+' hires\n// RPS deadline: '+(rpsDeadline||'TBD')+' | Batch 1: '+(batch1||'TBD')+' | Batch 2: '+(batch2||'TBD')+'\n// Offer deadline: '+(offerDeadline||'TBD')+' | Start: '+(startDate||'TBD')+'\n// Batch 1: '+b1F2F+' F2F | Batch 2: '+b2F2F+' F2F\n// Interviewer load ('+intPool+'): ~'+tot+' hrs total per person\n\n// Paste this into Apps Script in your Google Sheet and run it.\nfunction build'+role.replace(/\s+/g,'')+'Tracker() {\n  SpreadsheetApp.getUi().alert("'+role+': '+hires+' hires\\nApps: '+apps+' | RPS: '+rps+' | F2F: '+f2f+' | Offers: '+offers+'\\nBatch 1: '+b1F2F+' | Batch 2: '+b2F2F+'");\n}';
+  document.getElementById('notionCode').textContent='## '+role+' — hiring plan\n\n**Target:** '+hires+' hires · **Start:** '+(startDate?fmt(startDate):'TBD')+'\n\n---\n\n## Key dates\n\n| Milestone | Date |\n|---|---|\n| Req open | '+(reqOpen?fmt(reqOpen):'TBD')+' |\n| RPS deadline | '+(rpsDeadline?fmt(rpsDeadline):'TBD')+' |\n| Batch day 1 | '+(batch1?fmt(batch1):'TBD')+' |\n| Batch day 2 | '+(batch2?fmt(batch2):'TBD')+' |\n| Offer deadline | '+(offerDeadline?fmt(offerDeadline):'TBD')+' |\n| Offers accepted | '+(acceptDeadline?fmt(acceptDeadline):'TBD')+' |\n| Start date | '+(startDate?fmt(startDate):'TBD')+' |\n\n---\n\n## Funnel\n\n| Stage | Rate | Volume |\n|---|---|---|\n| Applications | '+Math.round(appRate*100)+'% | '+apps+' |\n| RPS | '+Math.round(rpsRate*100)+'% | '+rps+' |\n| F2F | '+Math.round(f2fRate*100)+'% | '+f2f+' |\n| Offers | '+Math.round(acceptRate*100)+'% | '+offers+' |\n| Hires | Goal | '+hires+' |';
+
+  document.getElementById('results').style.display='block';
+  document.getElementById('results').scrollIntoView({behavior:'smooth'});
+}
+
+renderRounds(DEFAULT_ROUNDS);
+</script>
+</body>
+</html>
